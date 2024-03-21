@@ -1,0 +1,19 @@
+{
+    "name": "oishin/userservice",
+    "description": "user service package for the laravel dev test",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Oishin\\Userservice\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Oishin Smith"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "guzzlehttp/guzzle": "^7.0.1"
+      }
+}
