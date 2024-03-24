@@ -10,44 +10,75 @@ use Oishin\Userservice\Interfaces\UserServiceInterface;
 class UserserviceController implements UserserviceInterface
 {
 
-    public function getUserById(int $id): ?UserserviceDTO
+    public function getUserById(int $id)
     {
-        $response = Http::get("https://reqres.in/api/users/{$id}");
-        $userData = $response->json()['data']; // Assuming the ID is under 'data' key
+        try {
+            $response = Http::get("https://reqres.in/api/users/{$id}");
+            $userData = $response->json()['data'] ?? null;
+            
+            // If $userData is null, return null
+            if (!$userData) {
+                return response()->json([], 200);
+            }
 
-        return $userDTO = new UserserviceDTO(
-            $userData['id'],
-            $userData['first_name'],
-            $userData['last_name'],
-            $userData['email'],
-            $userData['avatar']
-        );
+            return new UserserviceDTO(
+                $userData['id'] ?? null,
+                $userData['first_name'] ?? null,
+                $userData['last_name'] ?? null,
+                $userData['email'] ?? null,
+                $userData['avatar'] ?? null
+            );
+        } catch (\Exception $e) {
+            return $e;
+        }
     }
 
-    public function getUsers(int $page = 1): ?UserserviceDTO
+    public function getUsers(int $page = 1)
     {
-        $response = Http::get("https://reqres.in/api/users?page={$page}");
-        $userData = $response->json()['data'];
-
-        return $userDTO = new UserserviceDTO(
-            $userData['id'],
-            $userData['first_name'],
-            $userData['last_name'],
-            $userData['email'],
-            $userData['avatar']
-        );
+        try {
+            $response = Http::get("https://reqres.in/api/users?page={$page}");
+            $userData = $response->json()['data'] ?? null;
+    
+            if (!$userData) {
+                return response()->json([], 200);
+            }
+            
+            $users = [];
+            foreach ($userData as $user) {
+                $users[] = new UserserviceDTO(
+                    $user['id'] ?? null,
+                    $user['first_name'] ?? null,
+                    $user['last_name'] ?? null,
+                    $user['email'] ?? null,
+                    $user['avatar'] ?? null
+                );
+            }
+            
+            return $users;
+        } catch (\Exception $e) {
+            // Handle exceptions here
+            return $e;
+        }
     }
 
-    public function createUser(Request $request): ?array
+    public function createUser(Request $request)
     {
+        print_r($request->all());
         $validatedData = $request->validate([
             'name' => 'required|string',
             'job' => 'required|string',
         ]);
 
-        $userId = $this->userService->createUser($validatedData['name'], $validatedData['job']);
-    
-        return response()->json(['user_id' => $userId], 201);
+        $response = Http::post('https://reqres.in/api/users', [
+            'name' => $validatedData['name'],
+            'job' => $validatedData['job'],
+        ]);
+
+        $userId = $response->json('id');
+
+        $message = "User created successfully.";
+
+        return response()->json(['user_id' => $userId, 'message' => $message], 201);
     }
 
 }

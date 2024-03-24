@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 interface UserServiceInterface
 {
 
-    public function getUserById(int $id): ?UserserviceDTO;
+    public function getUserById(int $id);
 
-    public function getUsers(int $page = 1): ?UserserviceDTO;
+    public function getUsers(int $page = 1);
 
-    public function createUser(Request $request): ?array;
+    public function createUser(Request $request);
 }
