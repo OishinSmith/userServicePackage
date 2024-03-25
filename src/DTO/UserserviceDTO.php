@@ -2,7 +2,7 @@
 
 namespace Oishin\Userservice\DTO;
 
-class UserserviceDTO implements \JsonSerializable
+class UserserviceDTO
 {
     public ?int $id;
     public ?string $firstName;
@@ -19,7 +19,7 @@ class UserserviceDTO implements \JsonSerializable
         $this->avatar = $avatar;
     }
     
-    public function jsonSerialize(): array
+    public function createUser(): array
     {
         return [
             'id' => $this->id,
