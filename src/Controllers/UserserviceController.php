@@ -14,13 +14,13 @@ class UserserviceController implements UserserviceInterface
     {
         try {
             $response = Http::get("https://reqres.in/api/users/{$id}");
-            $userData = $response->json()['data'] ?? null;
-            
-            // If $userData is null, return null
-            if (!$userData) {
-                return response()->json([], 200);
+            $responseJson = $response->json();
+            if (empty($responseJson)) {
+                return response()->json($responseJson, 200);
             }
 
+            $userData = $responseJson['data']; // Access response as array directly
+        
             return new UserserviceDTO(
                 $userData['id'] ?? null,
                 $userData['first_name'] ?? null,
@@ -37,11 +37,11 @@ class UserserviceController implements UserserviceInterface
     {
         try {
             $response = Http::get("https://reqres.in/api/users?page={$page}");
-            $userData = $response->json()['data'] ?? null;
-    
-            if (!$userData) {
-                return response()->json([], 200);
+            $responseJson = $response->json();
+            if (empty($responseJson)) {
+                return response()->json($responseJson, 200);
             }
+            $userData = $responseJson['data']; // Access response as array directly
             
             $users = [];
             foreach ($userData as $user) {
@@ -56,7 +56,6 @@ class UserserviceController implements UserserviceInterface
             
             return $users;
         } catch (\Exception $e) {
-            // Handle exceptions here
             return $e;
         }
     }
