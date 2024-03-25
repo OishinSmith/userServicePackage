@@ -9,7 +9,7 @@ use Illuminate\Http\Response;
 
 class unitTests extends TestCase
 {
-    public function testGetUserById()
+    public function testApis()
     {
         $controller = new UserserviceController();
 
@@ -23,11 +23,6 @@ class unitTests extends TestCase
         $user = $controller->getUserById(1000);
         $content = $user->getContent();
         $this->assertSame('[]', $content);
-    }
-
-    public function testGetUsers()
-    {
-        $controller = new UserserviceController();
 
         $users = $controller->getUsers(1);
         $this->assertNotEmpty($users);
@@ -42,11 +37,6 @@ class unitTests extends TestCase
         $response = $controller->getUsers(1000);
         $this->assertSame(200, $response->getStatusCode()); // Ensure status is OK
         $this->assertSame([], json_decode($response->getContent(), true));
-    }
-
-    public function testCreateUser()
-    {
-        $controller = new UserserviceController();
 
         $request = new Request(['name' => 'Oishin', 'job' => 'Dev']);
         $response = $controller->createUser($request);

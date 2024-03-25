@@ -63,7 +63,6 @@ class UserserviceController implements UserserviceInterface
 
     public function createUser(Request $request)
     {
-        print_r($request->all());
         $validatedData = $request->validate([
             'name' => 'required|string',
             'job' => 'required|string',
