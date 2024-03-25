@@ -9,7 +9,7 @@ use Illuminate\Http\Response;
 
 class unitTests extends TestCase
 {
-    public function __invoke()
+    public function testApis()
     {
         $controller = new UserserviceController();
 
