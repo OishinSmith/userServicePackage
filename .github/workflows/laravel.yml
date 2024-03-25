@@ -20,4 +20,4 @@ jobs:
       - name: list
         run: ls
       - name: Run PHPUnit tests
-        run: vendor/bin/phpunit src/tests/unitTests
+        run: vendor/bin/phpunit src/tests/unitTests.php
