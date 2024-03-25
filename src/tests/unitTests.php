@@ -3,7 +3,7 @@
 namespace Oishin\Userservice\tests;
 
 use PHPUnit\Framework\TestCase;
-use ..\Controllers\UserserviceController;
+use Oishin\Userservice\Controllers\UserserviceController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
