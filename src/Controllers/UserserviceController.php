@@ -5,7 +5,7 @@ namespace Oishin\Userservice\Controllers;
 use Oishin\Userservice\DTO\UserserviceDTO;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Oishin\Userservice\Interfaces\UserServiceInterface;
+use Oishin\Userservice\Interfaces\UserserviceInterface;
 
 class UserserviceController implements UserserviceInterface
 {

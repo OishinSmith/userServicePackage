@@ -5,7 +5,7 @@ namespace Oishin\Userservice\Interfaces;
 use Oishin\Userservice\DTO\UserserviceDTO;
 use Illuminate\Http\Request;
 
-interface UserServiceInterface
+interface UserserviceInterface
 {
 
     public function getUserById(int $id);
