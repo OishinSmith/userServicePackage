@@ -12,7 +12,7 @@ use Oishin\Userservice\Models\User;
 class UserserviceController implements UserserviceInterface
 {
 
-    public function getUserById(int $id): JsonResponse
+    public function getUserById(int $id): string
     {
         try {
             $client = new Client();
@@ -20,7 +20,7 @@ class UserserviceController implements UserserviceInterface
             $userData = json_decode($response->getBody(), true);
             
             if (empty($userData)) {
-                return [];
+                return json_encode($user);
             }
             
             $userData = $userData['data'];
@@ -39,14 +39,16 @@ class UserserviceController implements UserserviceInterface
             $user->lastName = $dto->lastName;
             $user->email = $dto->email;
             $user->avatar = $dto->avatar;
-            return response()->json($user);
+
+            return json_encode($user);
+
         }  catch (\Exception $e) {
 
             return response()->json(['error' => 'Failed to fetch user data'], 500);
         }
     }
 
-    public function getUsers(int $page = 1): JsonResponse
+    public function getUsers(int $page = 1): string
     {
         try {
             $client = new Client();
@@ -77,7 +79,7 @@ class UserserviceController implements UserserviceInterface
                 $users[] = $user;
             }
             
-            return response()->json($users);
+            return json_encode($users);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch user data'], 500);
         }
