@@ -4,24 +4,27 @@ namespace Oishin\Userservice\Controllers;
 
 use Oishin\Userservice\DTO\UserserviceDTO;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use GuzzleHttp\Client;
 use Illuminate\Http\JsonResponse;
 use Oishin\Userservice\Interfaces\UserserviceInterface;
+use Oishin\Userservice\Models\User;
 
 class UserserviceController implements UserserviceInterface
 {
 
-    public function getUserById(int $id): UserserviceDTO|array
+    public function getUserById(int $id): JsonResponse
     {
         try {
-            $response = Http::get("https://reqres.in/api/users/{$id}");
-            $responseJson = $response->json();
-            if (empty($responseJson)) {
+            $client = new Client();
+            $response = $client->get("https://reqres.in/api/users/{$id}");
+            $userData = json_decode($response->getBody(), true);
+            
+            if (empty($userData)) {
                 return [];
             }
+            
+            $userData = $userData['data'];
 
-            $userData = $responseJson['data'];
-        
             $dto = new UserserviceDTO(
                 $userData['id'] ?? null,
                 $userData['first_name'] ?? null,
@@ -29,23 +32,30 @@ class UserserviceController implements UserserviceInterface
                 $userData['email'] ?? null,
                 $userData['avatar'] ?? null
             );
-            
-            return $dto->createUser();
+
+            $user = new User();
+            $user->id = $dto->id;
+            $user->firstName = $dto->firstName;
+            $user->lastName = $dto->lastName;
+            $user->email = $dto->email;
+            $user->avatar = $dto->avatar;
+            return response()->json($user);
         }  catch (\Exception $e) {
 
             return response()->json(['error' => 'Failed to fetch user data'], 500);
         }
     }
 
-    public function getUsers(int $page = 1): UserserviceDTO|array
+    public function getUsers(int $page = 1): JsonResponse
     {
         try {
-            $response = Http::get("https://reqres.in/api/users?page={$page}");
-            $responseJson = $response->json();
+            $client = new Client();
+            $response = $client->get("https://reqres.in/api/users?page={$page}");
+            $responseJson = json_decode($response->getBody(), true);
             if (empty($responseJson)) {
-                return $responseJson;
+                return [];
             }
-            $userData = $responseJson['data']; // Access response as array directly
+            $userData = $responseJson['data'];
            
             $users = [];
             foreach ($userData as $user) {
@@ -56,12 +66,19 @@ class UserserviceController implements UserserviceInterface
                     $user['email'] ?? null,
                     $user['avatar'] ?? null
                 );
-                $users[] = $dto;
+
+                $user = new User();
+                $user->id = $dto->id;
+                $user->firstName = $dto->firstName;
+                $user->lastName = $dto->lastName;
+                $user->email = $dto->email;
+                $user->avatar = $dto->avatar;
+
+                $users[] = $user;
             }
             
-            return $users;
+            return response()->json($users);
         } catch (\Exception $e) {
-
             return response()->json(['error' => 'Failed to fetch user data'], 500);
         }
     }
@@ -74,12 +91,15 @@ class UserserviceController implements UserserviceInterface
         ]);
 
         try {
-            $response = Http::post('https://reqres.in/api/users', [
-                'name' => $validatedData['name'],
-                'job' => $validatedData['job'],
+            $client = new Client();
+            $response = $client->post('https://reqres.in/api/users', [
+                'json' => [
+                    'name' => $validatedData['name'],
+                    'job' => $validatedData['job'],
+                ]
             ]);
     
-            $userId = $response->json('id');
+            $userId = json_decode($response->getBody(), true)['id'];
     
             $message = "User created successfully.";
     
