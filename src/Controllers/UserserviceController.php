@@ -3,9 +3,7 @@
 namespace Oishin\Userservice\Controllers;
 
 use Oishin\Userservice\DTO\UserserviceDTO;
-use Illuminate\Http\Request;
 use GuzzleHttp\Client;
-use Illuminate\Http\JsonResponse;
 use Oishin\Userservice\Interfaces\UserserviceInterface;
 use Oishin\Userservice\Models\User;
 
@@ -15,14 +13,26 @@ class UserserviceController implements UserserviceInterface
     public function getUserById(int $id): string
     {
         try {
+            // Create instance of Guzzle client
             $client = new Client();
-            $response = $client->get("https://reqres.in/api/users/{$id}");
-            $userData = json_decode($response->getBody(), true);
+            // Url + Urn
+            $uri = 'https://reqres.in/api/users/'.$id;
+            // A GuzzleHttp\Exception\ClientException is thrown for 400 level errors 
+            // if the http_errors request option is set to true.
+            try {
+                $response = $client->request('GET', $uri, ['http_errors' => false]);
+            } catch (RequestException $e) {
+                // Return non 400 type errors
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+
+            $responseCode = $response->getStatusCode();
             
-            if (empty($userData)) {
-                return json_encode($user);
+            if ($responseCode == 404) {
+                return '{}';
             }
             
+            $userData = json_decode($response->getBody(), true);
             $userData = $userData['data'];
 
             $dto = new UserserviceDTO(
@@ -51,13 +61,32 @@ class UserserviceController implements UserserviceInterface
     public function getUsers(int $page = 1): string
     {
         try {
+            // Create instance of Guzzle client
             $client = new Client();
-            $response = $client->get("https://reqres.in/api/users?page={$page}");
-            $responseJson = json_decode($response->getBody(), true);
-            if (empty($responseJson)) {
-                return [];
+            // Url + Urn
+            $uri = 'https://reqres.in/api/users?page='.$page;
+            
+            // A GuzzleHttp\Exception\ClientException is thrown for 400 level errors 
+            // if the http_errors request option is set to true.
+            try {
+                $response = $client->request('GET', $uri, ['http_errors' => false]);
+            } catch (RequestException $e) {
+                // Return non 400 type errors
+                return response()->json(['error' => $e->getMessage()], 500);
             }
-            $userData = $responseJson['data'];
+
+            $responseCode = $response->getStatusCode();
+            
+            if ($responseCode == 404) {
+                return '{}';
+            }
+            
+            $userData = json_decode($response->getBody(), true);
+            $userData = $userData['data'];
+            
+            if (empty($userData)) {
+                return '{}';
+            }
            
             $users = [];
             foreach ($userData as $user) {
@@ -85,27 +114,35 @@ class UserserviceController implements UserserviceInterface
         }
     }
 
-    public function createUser(Request $request): JsonResponse
+    public function createUser()
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string',
-            'job' => 'required|string',
-        ]);
+        $requestBody = file_get_contents('php://input');
+        $requestJson = json_decode($requestBody);
 
         try {
-            $client = new Client();
-            $response = $client->post('https://reqres.in/api/users', [
-                'json' => [
-                    'name' => $validatedData['name'],
-                    'job' => $validatedData['job'],
-                ]
-            ]);
+
+            
+            try {
+                $client = new Client();
+                $uri = 'https://reqres.in/api/users';
+                $response = $client->post($uri, [
+                    'json' => [
+                        'name' => $requestJson->name,
+                        'job' => $requestJson->job,
+                    ]
+                ]);
     
-            $userId = json_decode($response->getBody(), true)['id'];
+            } catch (RequestException $e) {
+                // Return non 400 type errors
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+
+            $responseCode = $response->getStatusCode();
+            $userId = json_decode($response->getBody(), true);
     
             $message = "User created successfully.";
     
-            return response()->json(['user_id' => $userId, 'message' => $message], 201);
+            return response()->json($userId, $responseCode);
         } catch (\Exception $e) {
 
             return response()->json(['error' => 'Failed to create user'], 500);

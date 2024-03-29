@@ -12,5 +12,5 @@ interface UserserviceInterface
 
     public function getUsers(int $page = 1): string;
 
-    public function createUser(Request $request);
+    public function createUser();
 }
