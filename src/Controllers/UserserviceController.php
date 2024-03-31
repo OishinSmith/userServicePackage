@@ -28,6 +28,7 @@ class UserserviceController implements UserserviceInterface
             // A GuzzleHttp\Exception\ClientException is thrown for 400 level errors 
             // if the http_errors request option is set to true.
             try {
+                $this->client ?? new Client();
                 $response = $this->client->request('GET', $uri, ['http_errors' => false]);
             } catch (RequestException $e) {
                 // Return non 400 type errors
@@ -75,6 +76,7 @@ class UserserviceController implements UserserviceInterface
             // A GuzzleHttp\Exception\ClientException is thrown for 400 level errors 
             // if the http_errors request option is set to true.
             try {
+                $this->client ?? new Client();
                 $response = $this->client->request('GET', $uri, ['http_errors' => false]);
             } catch (RequestException $e) {
                 // Return non 400 type errors
@@ -135,7 +137,7 @@ class UserserviceController implements UserserviceInterface
         try {
             try {
                 $uri = 'https://reqres.in/api/users';
-
+                $this->client ?? new Client();
                 $response = $this->client->post($uri, [
                     'json' => [
                         'name' => $requestJson->name,
