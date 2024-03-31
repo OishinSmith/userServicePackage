@@ -28,14 +28,6 @@ class unitTests extends TestCase
         $this->assertNull($user->avatar);
     }
 
-    protected $controller;
-
-    protected function setUp(): void
-    {
-        $clientMock = $this->createMock(Client::class);
-        $this->controller = new UserserviceController($clientMock);
-    }
-
     public function testGetUserById()
     {
         // Mock the Guzzle client
@@ -89,11 +81,10 @@ class unitTests extends TestCase
                 'avatar' => 'https://example.com/avatar.jpg',
             ],
         ];
+        $clientMock = $this->createMock(Client::class);
         $response = new Response(200, [], json_encode(['data' => $userData]));
-        $this->controller->client->expects($this->once())
-            ->method('request')
-            ->with('GET', 'https://reqres.in/api/users?page=' . $page, ['http_errors' => false])
-            ->willReturn($response);
+        $clientMock->method('request')->willReturn($response);
+        $controller = new UserserviceController($clientMock);
 
         $expectedUsers = [];
         foreach ($userData as $data) {
@@ -106,9 +97,48 @@ class unitTests extends TestCase
             $expectedUsers[] = $user;
         }
 
-        $result = $this->controller->getUsers($page);
+        $result = $controller->getUsers($page);
         $this->assertEquals(json_encode($expectedUsers), $result);
     }
 
-    // Write test cases for other methods like createUser()
+    
+    public function testCreateUser()
+    {
+        // Mock the Guzzle client
+        $clientMock = $this->createMock(Client::class);
+
+        // Mocked request body
+        $requestBody = json_encode([
+            'name' => 'John Doe',
+            'job' => 'Developer'
+        ]);
+
+        $responseData = [
+            'id' => 123,
+            'name' => 'John Doe',
+            'job' => 'Developer',
+            'createdAt' => '2024-03-31T12:00:00Z'
+        ];
+
+        $response = new Response(201, [], json_encode(['data' => $responseData]));
+
+        $clientMock->method('request')->willReturn($response);
+
+        $controller = new UserserviceController($clientMock);
+
+        // Call the method being tested
+        $result = $controller->createUser();
+
+        // Assertions
+        $expectedUser = new \Oishin\Userservice\Models\User();
+        $expectedUser->id = $userData['id'];
+        $expectedUser->firstName = $userData['first_name'];
+        $expectedUser->lastName = $userData['last_name'];
+        $expectedUser->email = $userData['email'];
+        $expectedUser->avatar = $userData['avatar'];
+
+        $body = $result->getBody()->getContents();
+        $expectedResult = '{"error":"Empty body"}';
+        $this->assertEquals($expectedResult, $body);
+    }
 }

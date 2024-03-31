@@ -6,6 +6,7 @@ use Oishin\Userservice\DTO\UserserviceDTO;
 use GuzzleHttp\Client;
 use Oishin\Userservice\Interfaces\UserserviceInterface;
 use Oishin\Userservice\Models\User;
+use GuzzleHttp\Psr7\Response;
 
 class UserserviceController implements UserserviceInterface
 {
@@ -122,20 +123,18 @@ class UserserviceController implements UserserviceInterface
     public function createUser()
     {
         $requestBody = file_get_contents('php://input');
-        var_Dump($requestBody);
         $requestJson = json_decode($requestBody);
-        var_Dump(empty($requestJson));
         if(empty($requestJson)){
-            return response()->json(['error' => 'Empty body'], 422);
+            $response = new Response(422, [], json_encode(['error' => 'Empty body']));
+            return $response;
         }
-        if (empty($requestJson->name) || emmpty($requestJson->job)){
-            return response()->json(['error' => 'Missing fields'], 422);
+        if (empty($requestJson->name) || empty($requestJson->job)){
+            $response = new Response(422, [], json_encode(['error' => 'Missing fields']));
+            return $response;
         }
         try {
             try {
                 $uri = 'https://reqres.in/api/users';
-                var_dump(empty($requestJson));
-                var_dump($requestJson->name);
 
                 $response = $this->client->post($uri, [
                     'json' => [
@@ -151,13 +150,13 @@ class UserserviceController implements UserserviceInterface
 
             $responseCode = $response->getStatusCode();
             $userId = json_decode($response->getBody(), true);
-    
+            
             $message = "User created successfully.";
     
             return response()->json($userId, $responseCode);
         } catch (\Exception $e) {
 
-            return response()->json(['error' => 'Failed to create user'], 500);
+            return $e;
         }
 
     }
