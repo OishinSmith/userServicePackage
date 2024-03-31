@@ -10,7 +10,7 @@ use Oishin\Userservice\Models\User;
 class UserserviceController implements UserserviceInterface
 {
 
-    protected $client;
+    public $client;
 
     public function __construct(Client $client = null)
     {

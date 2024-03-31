@@ -28,25 +28,83 @@ class unitTests extends TestCase
         $this->assertNull($user->avatar);
     }
 
-    public function testGetUserById()
+    protected $controller;
+
+    protected function setUp(): void
     {
-        $userService = new UserserviceController();
-
-        $result = $userService->getUserById(1);
-
-        $expectedResult = '{"id":1,"firstName":"George","lastName":"Bluth","email":"george.bluth@reqres.in","avatar":"https:\/\/reqres.in\/img\/faces\/1-image.jpg"}';
-        $this->assertEquals($expectedResult, $result);
+        $clientMock = $this->createMock(Client::class);
+        $this->controller = new UserserviceController($clientMock);
     }
 
-    
+ public function testGetUserById()
+    {
+        $userId = 1;
+        $userData = [
+            'id' => $userId,
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john@example.com',
+            'avatar' => 'https://example.com/avatar.jpg',
+        ];
+        $response = new Response(200, [], json_encode(['data' => $userData]));
+
+        $this->controller->client->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://reqres.in/api/users/' . $userId, ['http_errors' => false])
+            ->willReturn($response);
+
+        $result = $this->controller->getUserById($userId);
+
+        $expectedUser = new \Oishin\Userservice\Models\User();
+        $expectedUser->id = $userData['id'];
+        $expectedUser->firstName = $userData['first_name'];
+        $expectedUser->lastName = $userData['last_name'];
+        $expectedUser->email = $userData['email'];
+        $expectedUser->avatar = $userData['avatar'];
+
+        $this->assertEquals(json_encode($expectedUser), $result);
+    }
+
     public function testGetUsers()
     {
-        $userService = new UserserviceController();
+        $page = 1;
+        $userData = [
+            [
+                'id' => 1,
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'john@example.com',
+                'avatar' => 'https://example.com/avatar.jpg',
+            ],
+            [
+                'id' => 2,
+                'first_name' => 'Jane',
+                'last_name' => 'Doe',
+                'email' => 'jane@example.com',
+                'avatar' => 'https://example.com/avatar.jpg',
+            ],
+        ];
+        $response = new Response(200, [], json_encode(['data' => $userData]));
+        $this->controller->client->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://reqres.in/api/users?page=' . $page, ['http_errors' => false])
+            ->willReturn($response);
 
-        $result = $userService->getUsers(1);
-        $this->assertNotEquals('{}', $result);
+        $expectedUsers = [];
+        foreach ($userData as $data) {
+            $user = new \Oishin\Userservice\Models\User();
+            $user->id = $data['id'];
+            $user->firstName = $data['first_name'];
+            $user->lastName = $data['last_name'];
+            $user->email = $data['email'];
+            $user->avatar = $data['avatar'];
+            $expectedUsers[] = $user;
+        }
 
-        $result = $userService->getUsers(123);
-        $this->assertEquals('{}', $result);
+        $result = $this->controller->getUsers($page);
+
+        $this->assertEquals(json_encode($expectedUsers), $result);
     }
+
+    // Write test cases for other methods like createUser()
 }
