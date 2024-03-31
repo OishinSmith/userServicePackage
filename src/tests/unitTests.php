@@ -6,11 +6,16 @@ use PHPUnit\Framework\TestCase;
 use Oishin\Userservice\Controllers\UserserviceController;
 use Oishin\Userservice\DTO\UserserviceDTO;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Stream;
 
 class unitTests extends TestCase
 {
-    public function testApis()
+    public function testUserServiceDTO()
     {
         // cant really test api calls using phpunit. But I can test the dto which is returned
         // by the Userservice package apis
@@ -21,19 +26,27 @@ class unitTests extends TestCase
         $this->assertNotNull($user->lastName);
         $this->assertNotNull($user->email);
         $this->assertNull($user->avatar);
+    }
 
-        $users = 
-        [
-            new UserserviceDTO(1, "Oishin", "Smith", "o@gmail.com", "not null"),
-            new UserserviceDTO(2, "Joe", "Smith", "j@gmail.com", "vatar")
-        ];
-        $this->assertNotEmpty($users);
-        foreach ($users as $user) {
-            $this->assertNotNull($user->id);
-            $this->assertNotNull($user->firstName);
-            $this->assertNotNull($user->lastName);
-            $this->assertNotNull($user->email);
-            $this->assertNotNull($user->avatar);
-        }
+    public function testGetUserById()
+    {
+        $userService = new UserserviceController();
+
+        $result = $userService->getUserById(1);
+
+        $expectedResult = '{"id":1,"firstName":"George","lastName":"Bluth","email":"george.bluth@reqres.in","avatar":"https:\/\/reqres.in\/img\/faces\/1-image.jpg"}';
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    
+    public function testGetUsers()
+    {
+        $userService = new UserserviceController();
+
+        $result = $userService->getUsers(1);
+        $this->assertNotEquals('{}', $result);
+
+        $result = $userService->getUsers(123);
+        $this->assertEquals('{}', $result);
     }
 }

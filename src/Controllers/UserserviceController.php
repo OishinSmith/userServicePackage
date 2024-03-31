@@ -10,17 +10,24 @@ use Oishin\Userservice\Models\User;
 class UserserviceController implements UserserviceInterface
 {
 
+    protected $client;
+
+    public function __construct(Client $client = null)
+    {
+        $client ?? new Client();
+        $this->client = $client;
+    }
+
     public function getUserById(int $id): string
     {
         try {
             // Create instance of Guzzle client
-            $client = new Client();
             // Url + Urn
             $uri = 'https://reqres.in/api/users/'.$id;
             // A GuzzleHttp\Exception\ClientException is thrown for 400 level errors 
             // if the http_errors request option is set to true.
             try {
-                $response = $client->request('GET', $uri, ['http_errors' => false]);
+                $response = $this->client->request('GET', $uri, ['http_errors' => false]);
             } catch (RequestException $e) {
                 // Return non 400 type errors
                 return response()->json(['error' => $e->getMessage()], 500);
@@ -61,15 +68,13 @@ class UserserviceController implements UserserviceInterface
     public function getUsers(int $page = 1): string
     {
         try {
-            // Create instance of Guzzle client
-            $client = new Client();
             // Url + Urn
             $uri = 'https://reqres.in/api/users?page='.$page;
             
             // A GuzzleHttp\Exception\ClientException is thrown for 400 level errors 
             // if the http_errors request option is set to true.
             try {
-                $response = $client->request('GET', $uri, ['http_errors' => false]);
+                $response = $this->client->request('GET', $uri, ['http_errors' => false]);
             } catch (RequestException $e) {
                 // Return non 400 type errors
                 return response()->json(['error' => $e->getMessage()], 500);
@@ -117,15 +122,22 @@ class UserserviceController implements UserserviceInterface
     public function createUser()
     {
         $requestBody = file_get_contents('php://input');
+        var_Dump($requestBody);
         $requestJson = json_decode($requestBody);
-
+        var_Dump(empty($requestJson));
+        if(empty($requestJson)){
+            return response()->json(['error' => 'Empty body'], 422);
+        }
+        if (empty($requestJson->name) || emmpty($requestJson->job)){
+            return response()->json(['error' => 'Missing fields'], 422);
+        }
         try {
-
-            
             try {
-                $client = new Client();
                 $uri = 'https://reqres.in/api/users';
-                $response = $client->post($uri, [
+                var_dump(empty($requestJson));
+                var_dump($requestJson->name);
+
+                $response = $this->client->post($uri, [
                     'json' => [
                         'name' => $requestJson->name,
                         'job' => $requestJson->job,
