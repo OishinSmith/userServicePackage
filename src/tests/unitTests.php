@@ -5,7 +5,6 @@ namespace Oishin\Userservice\tests;
 use PHPUnit\Framework\TestCase;
 use Oishin\Userservice\Controllers\UserserviceController;
 use Oishin\Userservice\DTO\UserserviceDTO;
-use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Middleware;
