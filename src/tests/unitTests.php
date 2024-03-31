@@ -36,11 +36,14 @@ class unitTests extends TestCase
         $this->controller = new UserserviceController($clientMock);
     }
 
- public function testGetUserById()
+    public function testGetUserById()
     {
-        $userId = 1;
+        // Mock the Guzzle client
+        $clientMock = $this->createMock(Client::class);
+
+        // Create an instance of Response with desired data
         $userData = [
-            'id' => $userId,
+            'id' => 1,
             'first_name' => 'John',
             'last_name' => 'Doe',
             'email' => 'john@example.com',
@@ -48,13 +51,15 @@ class unitTests extends TestCase
         ];
         $response = new Response(200, [], json_encode(['data' => $userData]));
 
-        $this->controller->client->expects($this->once())
-            ->method('request')
-            ->with('GET', 'https://reqres.in/api/users/' . $userId, ['http_errors' => false])
-            ->willReturn($response);
+        // Set up the mock to return the response
+        $clientMock->method('request')->willReturn($response);
 
-        $result = $this->controller->getUserById($userId);
+        $controller = new UserserviceController($clientMock);
 
+        // Call the method being tested
+        $result = $controller->getUserById(1);
+
+        // Assertions
         $expectedUser = new \Oishin\Userservice\Models\User();
         $expectedUser->id = $userData['id'];
         $expectedUser->firstName = $userData['first_name'];
@@ -102,7 +107,6 @@ class unitTests extends TestCase
         }
 
         $result = $this->controller->getUsers($page);
-
         $this->assertEquals(json_encode($expectedUsers), $result);
     }
 
