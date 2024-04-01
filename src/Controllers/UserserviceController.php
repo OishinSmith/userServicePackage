@@ -152,7 +152,7 @@ class UserserviceController implements UserserviceInterface
             $responseCode = $response->getStatusCode();
             $responseBody = json_decode($response->getBody(), true);
     
-            if ($responseCode === 201) {
+            if ($responseCode !== 201) {
                 // Handle non-201 status codes (e.g., 4xx, 5xx errors)
                 $errorMessage = $responseBody['error'] ?? 'Unknown error occurred';
                 throw new \Exception($errorMessage, $responseCode); 
