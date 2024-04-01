@@ -19,7 +19,7 @@ class UserserviceController implements UserserviceInterface
         $this->client = $client;
     }
 
-    public function getUserById(int $id): string
+    public function getUserById(int $id): string|User
     {
         try {
             // Create instance of Guzzle client
@@ -52,6 +52,7 @@ class UserserviceController implements UserserviceInterface
                 $userData['avatar'] ?? null
             );
 
+            // user dto to transfere object to user model
             $user = new User();
             $user->id = $dto->id;
             $user->firstName = $dto->firstName;
@@ -59,7 +60,7 @@ class UserserviceController implements UserserviceInterface
             $user->email = $dto->email;
             $user->avatar = $dto->avatar;
 
-            return json_encode($user);
+            return $user;
 
         }  catch (\Exception $e) {
 
@@ -67,7 +68,7 @@ class UserserviceController implements UserserviceInterface
         }
     }
 
-    public function getUsers(int $page = 1): string
+    public function getUsers(int $page = 1): string|array
     {
         try {
             // Url + Urn
@@ -106,6 +107,7 @@ class UserserviceController implements UserserviceInterface
                     $user['avatar'] ?? null
                 );
 
+                // user dto to transfere object to user model
                 $user = new User();
                 $user->id = $dto->id;
                 $user->firstName = $dto->firstName;
@@ -116,51 +118,48 @@ class UserserviceController implements UserserviceInterface
                 $users[] = $user;
             }
             
-            return json_encode($users);
+            return $users;
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch user data'], 500);
         }
     }
 
-    public function createUser()
+    public function createUser(string $name, string $job): string|User
     {
-        $requestBody = file_get_contents('php://input');
-        $requestJson = json_decode($requestBody);
-        if(empty($requestJson)){
-            $response = new Response(422, [], json_encode(['error' => 'Empty body']));
-            return $response;
-        }
-        if (empty($requestJson->name) || empty($requestJson->job)){
-            $response = new Response(422, [], json_encode(['error' => 'Missing fields']));
-            return $response;
-        }
         try {
-            try {
-                $uri = 'https://reqres.in/api/users';
-                $this->client = $this->client ?? new Client();
-                $response = $this->client->post($uri, [
-                    'json' => [
-                        'name' => $requestJson->name,
-                        'job' => $requestJson->job,
-                    ]
-                ]);
+            $this->client = $this->client ?? new Client();
     
-            } catch (RequestException $e) {
-                // Return non 400 type errors
-                return response()->json(['error' => $e->getMessage()], 500);
-            }
-
+            $response = $this->client->post('https://reqres.in/api/users', [
+                'json' => [
+                    'name' => $name,
+                    'job' => $job,
+                ]
+            ]);
+    
             $responseCode = $response->getStatusCode();
-            $userId = json_decode($response->getBody(), true);
-            
+            $responseBody = json_decode($response->getBody(), true);
+    
             $message = "User created successfully.";
     
-            return response()->json($userId, $responseCode);
-        } catch (\Exception $e) {
+            $dto = new UserserviceDTO(
+                $responseBody['id'] ?? null,
+                $responseBody['name'] ?? null,
+                $responseBody['job'] ?? null,
+                null,
+                null
+            );
+            // user dto to transfere object to user model
+            $user = new User();
+            $user->id = $dto->id;
+            $user->firstName = $dto->firstName;
+            $user->lastName = $dto->lastName;
+            $user->email = $dto->email;
+            $user->avatar = $dto->avatar;
 
+            return $user;
+        } catch (\Exception $e) {
             return $e;
         }
-
     }
 
 }

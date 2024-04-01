@@ -8,6 +8,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('userservice/user/{id}', [UserserviceController::class, 'getUserById']);
 Route::get('userservice/page/{page?}', [UserserviceController::class, 'getUsers'])->defaults('page', 1);
-Route::post('userservice/user', [UserserviceController::class, 'createUser']);
+Route::post('userservice/create/user/name/{name}/job/{job}', [UserserviceController::class, 'createUser']);
 
 Route::get('/testApis', [unitTests::class, 'testApis']);
