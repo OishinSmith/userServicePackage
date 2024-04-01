@@ -4,7 +4,7 @@ namespace Oishin\Userservice\Interfaces;
 
 use Oishin\Userservice\DTO\UserserviceDTO;
 use Oishin\Userservice\Models\User;
-use Illuminate\Http\Request;
+use GuzzleHttp\Psr7\Response;
 
 interface UserserviceInterface
 {
@@ -13,5 +13,5 @@ interface UserserviceInterface
 
     public function getUsers(int $page = 1): string|array;
 
-    public function createUser(string $name, string $job): string|User;
+    public function createUser(string $name, string $job): Response|User;
 }

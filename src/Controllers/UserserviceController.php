@@ -7,6 +7,8 @@ use GuzzleHttp\Client;
 use Oishin\Userservice\Interfaces\UserserviceInterface;
 use Oishin\Userservice\Models\User;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 
 class UserserviceController implements UserserviceInterface
 {
@@ -32,7 +34,7 @@ class UserserviceController implements UserserviceInterface
                 $response = $this->client->request('GET', $uri, ['http_errors' => false]);
             } catch (RequestException $e) {
                 // Return non 400 type errors
-                return response()->json(['error' => $e->getMessage()], 500);
+                throw new \RuntimeException($e->getMessage(), 0, $e);
             }
 
             $responseCode = $response->getStatusCode();
@@ -62,9 +64,14 @@ class UserserviceController implements UserserviceInterface
 
             return $user;
 
-        }  catch (\Exception $e) {
-
-            return response()->json(['error' => 'Failed to fetch user data'], 500);
+        }  catch (RequestException $e) {
+            // Handle Guzzle HTTP errors (e.g., network issues, timeouts)
+            throw new \RuntimeException($e->getMessage(), 0, $e);
+        } catch (\Throwable $e) {
+            // Handle other unexpected errors
+            throw new \RuntimeException('An unexpected error occurred', 0, $e);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
         }
     }
 
@@ -81,7 +88,7 @@ class UserserviceController implements UserserviceInterface
                 $response = $this->client->request('GET', $uri, ['http_errors' => false]);
             } catch (RequestException $e) {
                 // Return non 400 type errors
-                return response()->json(['error' => $e->getMessage()], 500);
+                throw new \RuntimeException($e->getMessage(), 0, $e);
             }
 
             $responseCode = $response->getStatusCode();
@@ -119,17 +126,23 @@ class UserserviceController implements UserserviceInterface
             }
             
             return $users;
+        } catch (RequestException $e) {
+            // Handle Guzzle HTTP errors (e.g., network issues, timeouts)
+            throw new \RuntimeException($e->getMessage(), 0, $e);
+        } catch (\Throwable $e) {
+            // Handle other unexpected errors
+            throw new \RuntimeException('An unexpected error occurred', 0, $e);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to fetch user data'], 500);
+            throw new \Exception($e->getMessage());
         }
     }
 
-    public function createUser(string $name, string $job): string|User
+    public function createUser(string $name, string $job): Response|User
     {
         try {
             $this->client = $this->client ?? new Client();
     
-            $response = $this->client->post('https://reqres.in/api/users', [
+            $response = $this->client->post('https://reqres.in/ap', [
                 'json' => [
                     'name' => $name,
                     'job' => $job,
@@ -139,7 +152,11 @@ class UserserviceController implements UserserviceInterface
             $responseCode = $response->getStatusCode();
             $responseBody = json_decode($response->getBody(), true);
     
-            $message = "User created successfully.";
+            if ($responseCode === 201) {
+                // Handle non-201 status codes (e.g., 4xx, 5xx errors)
+                $errorMessage = $responseBody['error'] ?? 'Unknown error occurred';
+                throw new \Exception($errorMessage, $responseCode); 
+            }
     
             $dto = new UserserviceDTO(
                 $responseBody['id'] ?? null,
@@ -157,8 +174,14 @@ class UserserviceController implements UserserviceInterface
             $user->avatar = $dto->avatar;
 
             return $user;
+        } catch (RequestException $e) {
+            // Handle Guzzle HTTP errors (e.g., network issues, timeouts)
+            throw new \RuntimeException($e->getMessage(), 0, $e);
+        } catch (\Throwable $e) {
+            // Handle other unexpected errors
+            throw new \RuntimeException('An unexpected error occurred', 0, $e);
         } catch (\Exception $e) {
-            return $e;
+            throw new \Exception($e->getMessage());
         }
     }
 
