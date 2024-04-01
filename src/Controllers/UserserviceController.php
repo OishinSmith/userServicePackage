@@ -142,7 +142,7 @@ class UserserviceController implements UserserviceInterface
         try {
             $this->client = $this->client ?? new Client();
     
-            $response = $this->client->post('https://reqres.in/ap', [
+            $response = $this->client->post('https://reqres.in/api/users', [
                 'json' => [
                     'name' => $name,
                     'job' => $job,
